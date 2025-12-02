@@ -14,7 +14,7 @@ type testLogger struct {
 }
 
 func (l *testLogger) Info(msg string, keysAndValues ...interface{}) {
-	formatted := fmt.Sprintf("%s", msg)
+	formatted := msg
 	for i := 0; i < len(keysAndValues); i += 2 {
 		if i+1 < len(keysAndValues) {
 			formatted += fmt.Sprintf(" %v=%v", keysAndValues[i], keysAndValues[i+1])
