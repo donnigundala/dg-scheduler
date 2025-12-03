@@ -2,30 +2,23 @@ package scheduler
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/robfig/cron/v3"
 )
 
-// ValidateCronExpression validates a cron expression.
-// Returns nil if valid, error with helpful message if invalid.
+// ValidateCronExpression validates a cron expression format.
+// Returns an error if the expression is invalid.
 func ValidateCronExpression(expr string) error {
-	if expr == "" {
-		return fmt.Errorf("cron expression cannot be empty")
-	}
-
-	// Parse the expression
 	parser := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
 	_, err := parser.Parse(expr)
 	if err != nil {
 		return fmt.Errorf("invalid cron expression '%s': %w", expr, err)
 	}
-
 	return nil
 }
 
 // ValidateScheduleName validates a schedule name.
-// Returns nil if valid, error if invalid.
+// Names must be non-empty and contain only alphanumeric characters, hyphens, and underscores.
 func ValidateScheduleName(name string) error {
 	if name == "" {
 		return fmt.Errorf("schedule name cannot be empty")
@@ -35,9 +28,14 @@ func ValidateScheduleName(name string) error {
 		return fmt.Errorf("schedule name too long (max 100 characters): %d", len(name))
 	}
 
-	// Check for invalid characters
-	if strings.ContainsAny(name, "\n\r\t") {
-		return fmt.Errorf("schedule name contains invalid characters (newlines, tabs)")
+	// Check for valid characters (alphanumeric, hyphen, underscore)
+	for _, char := range name {
+		if !((char >= 'a' && char <= 'z') ||
+			(char >= 'A' && char <= 'Z') ||
+			(char >= '0' && char <= '9') ||
+			char == '-' || char == '_') {
+			return fmt.Errorf("schedule name '%s' contains invalid character '%c'", name, char)
+		}
 	}
 
 	return nil
