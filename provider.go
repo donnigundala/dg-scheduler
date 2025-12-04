@@ -78,15 +78,12 @@ func (p *SchedulerServiceProvider) Register(app foundation.Application) error {
 // Boot boots the scheduler service provider.
 func (p *SchedulerServiceProvider) Boot(app foundation.Application) error {
 	// Verify scheduler can be resolved
-	_, err := app.Make("scheduler")
-	if err != nil {
+	if _, err := app.Make("scheduler"); err != nil {
 		return fmt.Errorf("failed to boot scheduler provider: %w", err)
 	}
 
-	// NOTE: Scheduler is NOT auto-started here
-	// The application should manually start the scheduler when ready
-	// This prevents blocking the boot process
-	// Example: scheduler.Start() should be called after all jobs are registered
+	// NOTE: Scheduler implements Runnable interface
+	// It will be automatically started by app.StartServices()
 
 	return nil
 }

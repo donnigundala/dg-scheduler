@@ -127,9 +127,10 @@ func (s *Scheduler) Remove(name string) error {
 }
 
 // Start starts the scheduler.
-func (s *Scheduler) Start() {
+func (s *Scheduler) Start() error {
 	s.cron.Start()
 	s.logInfo("Scheduler started", "schedules", len(s.entries))
+	return nil
 }
 
 // Stop stops the scheduler gracefully.
