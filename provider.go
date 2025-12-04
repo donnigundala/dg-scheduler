@@ -1,8 +1,6 @@
 package scheduler
 
 import (
-	"fmt"
-
 	"github.com/donnigundala/dg-core/contracts/foundation"
 )
 
@@ -77,13 +75,9 @@ func (p *SchedulerServiceProvider) Register(app foundation.Application) error {
 
 // Boot boots the scheduler service provider.
 func (p *SchedulerServiceProvider) Boot(app foundation.Application) error {
-	// Verify scheduler can be resolved
-	if _, err := app.Make("scheduler"); err != nil {
-		return fmt.Errorf("failed to boot scheduler provider: %w", err)
-	}
-
 	// NOTE: Scheduler implements Runnable interface
 	// It will be automatically started by app.StartServices()
+	// No need to verify resolution here - it will be resolved when needed
 
 	return nil
 }
