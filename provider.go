@@ -20,7 +20,7 @@ type SchedulerServiceProvider struct {
 
 // Name returns the name of the plugin.
 func (p *SchedulerServiceProvider) Name() string {
-	return "dg-scheduler"
+	return "scheduler"
 }
 
 // Version returns the version of the plugin.
