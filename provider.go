@@ -42,32 +42,9 @@ func (p *SchedulerServiceProvider) Register(app foundation.Application) error {
 
 	// Register the scheduler as a singleton
 	app.Singleton("scheduler", func() (interface{}, error) {
-		// Try to resolve queue dispatcher (optional)
-		var dispatcher Dispatcher
-		if queueInstance, err := app.Make("queue"); err == nil {
-			// Queue is available, use it as dispatcher
-			// We use interface{} to avoid importing dg-queue
-			if queueDispatcher, ok := queueInstance.(Dispatcher); ok {
-				dispatcher = queueDispatcher
-			}
-		}
-
-		// Try to resolve logger (optional)
-		if cfg.Logger == nil {
-			if loggerInstance, err := app.Make("logger"); err == nil {
-				// Adapt dg-core logger to scheduler.Logger interface
-				if logger, ok := loggerInstance.(interface {
-					Info(msg string, keysAndValues ...interface{})
-					Error(msg string, keysAndValues ...interface{})
-					Warn(msg string, keysAndValues ...interface{})
-				}); ok {
-					cfg.Logger = &loggerAdapter{logger: logger}
-				}
-			}
-		}
-
-		// Create scheduler with optional dispatcher and config
-		return NewWithConfig(dispatcher, cfg), nil
+		// Create scheduler with config
+		// Dependencies (logger, queue) will be injected later if needed
+		return NewWithConfig(nil, cfg), nil
 	})
 
 	return nil
