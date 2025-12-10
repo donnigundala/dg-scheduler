@@ -8,7 +8,7 @@ import (
 
 func TestSchedulerServiceProvider_Name(t *testing.T) {
 	provider := &SchedulerServiceProvider{}
-	assert.Equal(t, "dg-scheduler", provider.Name())
+	assert.Equal(t, "scheduler", provider.Name())
 }
 
 func TestSchedulerServiceProvider_Version(t *testing.T) {

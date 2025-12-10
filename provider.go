@@ -23,7 +23,7 @@ func (p *SchedulerServiceProvider) Name() string {
 
 // Version returns the version of the plugin.
 func (p *SchedulerServiceProvider) Version() string {
-	return "1.1.0"
+	return "1.2.0"
 }
 
 // Dependencies returns the list of dependencies.
@@ -41,11 +41,9 @@ func (p *SchedulerServiceProvider) Register(app foundation.Application) error {
 	}
 
 	// Register the scheduler as a singleton
-	app.Singleton("scheduler", func() (interface{}, error) {
-		// Create scheduler with config
-		// Dependencies (logger, queue) will be injected later if needed
-		return NewWithConfig(nil, cfg), nil
-	})
+	// Register the scheduler instance eagerly
+	schedulerInstance := NewWithConfig(nil, cfg)
+	app.Instance("scheduler", schedulerInstance)
 
 	return nil
 }
