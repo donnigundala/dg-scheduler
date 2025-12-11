@@ -13,7 +13,7 @@ func TestSchedulerServiceProvider_Name(t *testing.T) {
 
 func TestSchedulerServiceProvider_Version(t *testing.T) {
 	provider := &SchedulerServiceProvider{}
-	assert.Equal(t, "1.1.0", provider.Version())
+	assert.Equal(t, "1.2.0", provider.Version())
 }
 
 func TestSchedulerServiceProvider_Dependencies(t *testing.T) {
