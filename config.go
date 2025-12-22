@@ -1,16 +1,22 @@
-package scheduler
+package dgscheduler
 
 // Logger is the interface for structured logging.
 // Implement this interface to integrate with your logging system.
 type Logger interface {
-	// Info logs an informational message
-	Info(msg string, keysAndValues ...interface{})
+	// Debug logs a debug message
+	Debug(msg string, args ...interface{})
 
-	// Error logs an error message
-	Error(msg string, err error, keysAndValues ...interface{})
+	// Info logs an informational message
+	Info(msg string, args ...interface{})
 
 	// Warn logs a warning message
-	Warn(msg string, keysAndValues ...interface{})
+	Warn(msg string, args ...interface{})
+
+	// Error logs an error message
+	Error(msg string, args ...interface{})
+
+	// With returns a new logger with the given fields added
+	With(args ...interface{}) Logger
 }
 
 // Config holds configuration for the scheduler.

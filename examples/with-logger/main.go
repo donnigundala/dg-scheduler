@@ -13,17 +13,24 @@ type CustomLogger struct {
 	logger *slog.Logger
 }
 
-func (l *CustomLogger) Info(msg string, keysAndValues ...interface{}) {
-	l.logger.Info(msg, keysAndValues...)
+func (l *CustomLogger) Debug(msg string, args ...interface{}) {
+	l.logger.Debug(msg, args...)
 }
 
-func (l *CustomLogger) Error(msg string, err error, keysAndValues ...interface{}) {
-	args := append([]interface{}{"error", err}, keysAndValues...)
+func (l *CustomLogger) Info(msg string, args ...interface{}) {
+	l.logger.Info(msg, args...)
+}
+
+func (l *CustomLogger) Warn(msg string, args ...interface{}) {
+	l.logger.Warn(msg, args...)
+}
+
+func (l *CustomLogger) Error(msg string, args ...interface{}) {
 	l.logger.Error(msg, args...)
 }
 
-func (l *CustomLogger) Warn(msg string, keysAndValues ...interface{}) {
-	l.logger.Warn(msg, keysAndValues...)
+func (l *CustomLogger) With(args ...interface{}) scheduler.Logger {
+	return &CustomLogger{logger: l.logger.With(args...)}
 }
 
 func main() {

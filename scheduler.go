@@ -1,4 +1,4 @@
-package scheduler
+package dgscheduler
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 // The interface matches dg-queue's Queue.Dispatch signature but uses
 // interface{} instead of *Job to avoid importing dg-queue.
 type Dispatcher interface {
-	Dispatch(name string, payload interface{}) (interface{}, error)
+	Dispatch(ctx context.Context, name string, payload interface{}) (interface{}, error)
 }
 
 // Scheduler manages scheduled jobs using cron syntax.
@@ -76,7 +76,10 @@ func (s *Scheduler) Schedule(cronExpr, name string, handler func() error) error 
 
 	// Add to cron
 	entryID, err := s.cron.AddFunc(cronExpr, func() {
-		if err := handler(); err != nil {
+		// Wrap handler with observability
+		wrappedHandler := Observability(name, handler)
+
+		if err := wrappedHandler(); err != nil {
 			s.handleError(name, err)
 		}
 	})
@@ -103,7 +106,7 @@ func (s *Scheduler) ScheduleJob(cronExpr, jobName string, payload interface{}) e
 	}
 
 	return s.Schedule(cronExpr, "schedule_"+jobName, func() error {
-		_, err := s.dispatcher.Dispatch(jobName, payload)
+		_, err := s.dispatcher.Dispatch(context.Background(), jobName, payload)
 		return err
 	})
 }
@@ -160,15 +163,17 @@ func (s *Scheduler) handleError(name string, err error) {
 }
 
 // logInfo logs an informational message.
-func (s *Scheduler) logInfo(msg string, keysAndValues ...interface{}) {
+func (s *Scheduler) logInfo(msg string, args ...interface{}) {
 	if s.config.Logger != nil {
-		s.config.Logger.Info(msg, keysAndValues...)
+		// Prepend component name as first key-value pair
+		fullArgs := append([]interface{}{"component", "scheduler"}, args...)
+		s.config.Logger.Info(msg, fullArgs...)
 	} else {
 		// Fallback to fmt.Printf
 		fmt.Printf("[Scheduler] %s", msg)
-		for i := 0; i < len(keysAndValues); i += 2 {
-			if i+1 < len(keysAndValues) {
-				fmt.Printf(" %v=%v", keysAndValues[i], keysAndValues[i+1])
+		for i := 0; i < len(args); i += 2 {
+			if i+1 < len(args) {
+				fmt.Printf(" %v=%v", args[i], args[i+1])
 			}
 		}
 		fmt.Println()
@@ -176,15 +181,17 @@ func (s *Scheduler) logInfo(msg string, keysAndValues ...interface{}) {
 }
 
 // logError logs an error message.
-func (s *Scheduler) logError(msg string, err error, keysAndValues ...interface{}) {
+func (s *Scheduler) logError(msg string, err error, args ...interface{}) {
 	if s.config.Logger != nil {
-		s.config.Logger.Error(msg, err, keysAndValues...)
+		// Prepend component name and error as first key-value pairs
+		fullArgs := append([]interface{}{"component", "scheduler", "error", err}, args...)
+		s.config.Logger.Error(msg, fullArgs...)
 	} else {
 		// Fallback to fmt.Printf
 		fmt.Printf("[Scheduler] ERROR: %s: %v", msg, err)
-		for i := 0; i < len(keysAndValues); i += 2 {
-			if i+1 < len(keysAndValues) {
-				fmt.Printf(" %v=%v", keysAndValues[i], keysAndValues[i+1])
+		for i := 0; i < len(args); i += 2 {
+			if i+1 < len(args) {
+				fmt.Printf(" %v=%v", args[i], args[i+1])
 			}
 		}
 		fmt.Println()

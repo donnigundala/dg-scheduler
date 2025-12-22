@@ -1,6 +1,8 @@
-package scheduler
+package dgscheduler
 
 import (
+	"reflect"
+
 	"github.com/donnigundala/dg-core/contracts/foundation"
 )
 
@@ -11,19 +13,25 @@ import (
 // For advanced use cases requiring custom adapters or configuration,
 // use the library functions (New, NewWithConfig) directly.
 type SchedulerServiceProvider struct {
-	// Config holds optional scheduler configuration
 	// If not provided, defaults will be used
 	Config *Config
 }
 
+// NewSchedulerServiceProvider creates a new scheduler service provider.
+func NewSchedulerServiceProvider(config *Config) *SchedulerServiceProvider {
+	return &SchedulerServiceProvider{
+		Config: config,
+	}
+}
+
 // Name returns the name of the plugin.
 func (p *SchedulerServiceProvider) Name() string {
-	return "scheduler"
+	return Binding
 }
 
 // Version returns the version of the plugin.
 func (p *SchedulerServiceProvider) Version() string {
-	return "1.2.0"
+	return Version
 }
 
 // Dependencies returns the list of dependencies.
@@ -34,16 +42,32 @@ func (p *SchedulerServiceProvider) Dependencies() []string {
 
 // Register registers the scheduler service provider.
 func (p *SchedulerServiceProvider) Register(app foundation.Application) error {
-	// Use provided config or default
-	cfg := p.Config
-	if cfg == nil {
-		cfg = DefaultConfig()
-	}
+	app.Singleton(Binding, func() (interface{}, error) {
+		// Use provided config or default
+		cfg := p.Config
+		if cfg == nil {
+			cfg = DefaultConfig()
+		}
 
-	// Register the scheduler as a singleton
-	// Register the scheduler instance eagerly
-	schedulerInstance := NewWithConfig(nil, cfg)
-	app.Instance("scheduler", schedulerInstance)
+		// Try to resolve logger from container if not already configured
+		if cfg.Logger == nil {
+			if loggerInstance, err := app.Make("logger"); err == nil {
+				// Adapt the logger to scheduler.Logger interface
+				if adapted, ok := loggerInstance.(interface {
+					Debug(msg string, args ...interface{})
+					Info(msg string, args ...interface{})
+					Warn(msg string, args ...interface{})
+					Error(msg string, args ...interface{})
+				}); ok {
+					cfg.Logger = &loggerAdapter{logger: adapted}
+				}
+			}
+		}
+
+		// Create the scheduler instance
+		schedulerInstance := NewWithConfig(nil, cfg)
+		return schedulerInstance, nil
+	})
 
 	return nil
 }
@@ -73,21 +97,49 @@ func (p *SchedulerServiceProvider) Shutdown(app foundation.Application) error {
 // loggerAdapter adapts a generic logger to scheduler.Logger interface.
 type loggerAdapter struct {
 	logger interface {
-		Info(msg string, keysAndValues ...interface{})
-		Error(msg string, keysAndValues ...interface{})
-		Warn(msg string, keysAndValues ...interface{})
+		Debug(msg string, args ...interface{})
+		Info(msg string, args ...interface{})
+		Warn(msg string, args ...interface{})
+		Error(msg string, args ...interface{})
 	}
 }
 
-func (l *loggerAdapter) Info(msg string, keysAndValues ...interface{}) {
-	l.logger.Info(msg, keysAndValues...)
+func (l *loggerAdapter) Debug(msg string, args ...interface{}) {
+	l.logger.Debug(msg, args...)
 }
 
-func (l *loggerAdapter) Error(msg string, err error, keysAndValues ...interface{}) {
-	args := append([]interface{}{"error", err}, keysAndValues...)
+func (l *loggerAdapter) Info(msg string, args ...interface{}) {
+	l.logger.Info(msg, args...)
+}
+
+func (l *loggerAdapter) Warn(msg string, args ...interface{}) {
+	l.logger.Warn(msg, args...)
+}
+
+func (l *loggerAdapter) Error(msg string, args ...interface{}) {
 	l.logger.Error(msg, args...)
 }
 
-func (l *loggerAdapter) Warn(msg string, keysAndValues ...interface{}) {
-	l.logger.Warn(msg, keysAndValues...)
+func (l *loggerAdapter) With(args ...interface{}) Logger {
+	// Try to call With(args...) via reflection to support different return types
+	v := reflect.ValueOf(l.logger)
+	m := v.MethodByName("With")
+	if m.IsValid() {
+		valArgs := make([]reflect.Value, len(args))
+		for i, arg := range args {
+			valArgs[i] = reflect.ValueOf(arg)
+		}
+		results := m.Call(valArgs)
+		if len(results) == 1 {
+			if nextLogger, ok := results[0].Interface().(interface {
+				Debug(msg string, args ...interface{})
+				Info(msg string, args ...interface{})
+				Warn(msg string, args ...interface{})
+				Error(msg string, args ...interface{})
+			}); ok {
+				return &loggerAdapter{logger: nextLogger}
+			}
+		}
+	}
+	return l
 }

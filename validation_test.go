@@ -1,11 +1,11 @@
-package scheduler_test
+package dgscheduler_test
 
 import (
 	"strings"
 	"testing"
 	"time"
 
-	scheduler "github.com/donnigundala/dg-scheduler"
+	dgscheduler "github.com/donnigundala/dg-scheduler"
 )
 
 func TestValidateCronExpression(t *testing.T) {
@@ -26,7 +26,7 @@ func TestValidateCronExpression(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := scheduler.ValidateCronExpression(tt.expr)
+			err := dgscheduler.ValidateCronExpression(tt.expr)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateCronExpression() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -52,7 +52,7 @@ func TestValidateScheduleName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := scheduler.ValidateScheduleName(tt.schedule)
+			err := dgscheduler.ValidateScheduleName(tt.schedule)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateScheduleName() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -61,7 +61,7 @@ func TestValidateScheduleName(t *testing.T) {
 }
 
 func TestParseCronExpression(t *testing.T) {
-	schedule, err := scheduler.ParseCronExpression("*/5 * * * *")
+	schedule, err := dgscheduler.ParseCronExpression("*/5 * * * *")
 	if err != nil {
 		t.Fatalf("ParseCronExpression() error = %v", err)
 	}
@@ -80,14 +80,14 @@ func TestParseCronExpression(t *testing.T) {
 }
 
 func TestParseCronExpression_Invalid(t *testing.T) {
-	_, err := scheduler.ParseCronExpression("invalid")
+	_, err := dgscheduler.ParseCronExpression("invalid")
 	if err == nil {
 		t.Error("Expected error for invalid cron expression")
 	}
 }
 
 func TestScheduler_ValidationInSchedule(t *testing.T) {
-	s := scheduler.New(nil)
+	s := dgscheduler.New(nil)
 	defer s.Stop()
 
 	// Test empty name

@@ -1,10 +1,10 @@
-package scheduler_test
+package dgscheduler_test
 
 import (
 	"fmt"
 	"testing"
 
-	scheduler "github.com/donnigundala/dg-scheduler"
+	dgscheduler "github.com/donnigundala/dg-scheduler"
 )
 
 // Example custom logger implementation
@@ -13,37 +13,45 @@ type testLogger struct {
 	errors []string
 }
 
-func (l *testLogger) Info(msg string, keysAndValues ...interface{}) {
+func (l *testLogger) Debug(msg string, args ...interface{}) {
+	// Not used in tests yet
+}
+
+func (l *testLogger) Info(msg string, args ...interface{}) {
 	formatted := msg
-	for i := 0; i < len(keysAndValues); i += 2 {
-		if i+1 < len(keysAndValues) {
-			formatted += fmt.Sprintf(" %v=%v", keysAndValues[i], keysAndValues[i+1])
+	for i := 0; i < len(args); i += 2 {
+		if i+1 < len(args) {
+			formatted += fmt.Sprintf(" %v=%v", args[i], args[i+1])
 		}
 	}
 	l.infos = append(l.infos, formatted)
 }
 
-func (l *testLogger) Error(msg string, err error, keysAndValues ...interface{}) {
-	formatted := fmt.Sprintf("%s: %v", msg, err)
-	for i := 0; i < len(keysAndValues); i += 2 {
-		if i+1 < len(keysAndValues) {
-			formatted += fmt.Sprintf(" %v=%v", keysAndValues[i], keysAndValues[i+1])
+func (l *testLogger) Warn(msg string, args ...interface{}) {
+	// Not used in scheduler yet
+}
+
+func (l *testLogger) Error(msg string, args ...interface{}) {
+	formatted := msg
+	for i := 0; i < len(args); i += 2 {
+		if i+1 < len(args) {
+			formatted += fmt.Sprintf(" %v=%v", args[i], args[i+1])
 		}
 	}
 	l.errors = append(l.errors, formatted)
 }
 
-func (l *testLogger) Warn(msg string, keysAndValues ...interface{}) {
-	// Not used in scheduler yet
+func (l *testLogger) With(args ...interface{}) dgscheduler.Logger {
+	return l
 }
 
 func TestScheduler_WithLogger(t *testing.T) {
 	logger := &testLogger{}
-	config := &scheduler.Config{
+	config := &dgscheduler.Config{
 		Logger: logger,
 	}
 
-	s := scheduler.NewWithConfig(nil, config)
+	s := dgscheduler.NewWithConfig(nil, config)
 	s.Start()
 	defer s.Stop()
 
@@ -65,13 +73,13 @@ func TestScheduler_WithLogger(t *testing.T) {
 func TestScheduler_WithErrorHandler(t *testing.T) {
 	errorHandlerCalled := false
 
-	config := &scheduler.Config{
+	config := &dgscheduler.Config{
 		ErrorHandler: func(name string, err error) {
 			errorHandlerCalled = true
 		},
 	}
 
-	s := scheduler.NewWithConfig(nil, config)
+	s := dgscheduler.NewWithConfig(nil, config)
 	s.Start()
 	defer s.Stop()
 
@@ -95,7 +103,7 @@ func TestScheduler_WithErrorHandler(t *testing.T) {
 }
 
 func TestScheduler_DefaultConfig(t *testing.T) {
-	config := scheduler.DefaultConfig()
+	config := dgscheduler.DefaultConfig()
 
 	if config == nil {
 		t.Fatal("DefaultConfig should not return nil")

@@ -1,26 +1,27 @@
-package scheduler
+package dgscheduler
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
 
-	queue "github.com/donnigundala/dg-queue"
+	dgqueue "github.com/donnigundala/dg-queue"
 )
 
 // queueAdapter adapts queue.Manager to implement the Dispatcher interface.
 // This is only needed for tests since queue.Manager returns *queue.Job
 // but Dispatcher returns interface{}.
 type queueAdapter struct {
-	queue queue.Queue
+	queue dgqueue.Queue
 }
 
-func (qa *queueAdapter) Dispatch(name string, payload interface{}) (interface{}, error) {
-	return qa.queue.Dispatch(name, payload)
+func (qa *queueAdapter) Dispatch(ctx context.Context, name string, payload interface{}) (interface{}, error) {
+	return qa.queue.Dispatch(ctx, name, payload)
 }
 
 func TestScheduler_Schedule(t *testing.T) {
-	manager := queue.New(queue.DefaultConfig())
+	manager := dgqueue.New(dgqueue.DefaultConfig())
 	scheduler := New(&queueAdapter{queue: manager})
 	defer scheduler.Stop()
 
@@ -52,7 +53,7 @@ func TestScheduler_Schedule(t *testing.T) {
 }
 
 func TestScheduler_InvalidCron(t *testing.T) {
-	manager := queue.New(queue.DefaultConfig())
+	manager := dgqueue.New(dgqueue.DefaultConfig())
 	scheduler := New(&queueAdapter{queue: manager})
 	defer scheduler.Stop()
 
@@ -66,7 +67,7 @@ func TestScheduler_InvalidCron(t *testing.T) {
 }
 
 func TestScheduler_DuplicateName(t *testing.T) {
-	manager := queue.New(queue.DefaultConfig())
+	manager := dgqueue.New(dgqueue.DefaultConfig())
 	scheduler := New(&queueAdapter{queue: manager})
 	defer scheduler.Stop()
 
@@ -88,7 +89,7 @@ func TestScheduler_DuplicateName(t *testing.T) {
 }
 
 func TestScheduler_Remove(t *testing.T) {
-	manager := queue.New(queue.DefaultConfig())
+	manager := dgqueue.New(dgqueue.DefaultConfig())
 	scheduler := New(&queueAdapter{queue: manager})
 	defer scheduler.Stop()
 
@@ -113,7 +114,7 @@ func TestScheduler_Remove(t *testing.T) {
 }
 
 func TestScheduler_RemoveNonExistent(t *testing.T) {
-	manager := queue.New(queue.DefaultConfig())
+	manager := dgqueue.New(dgqueue.DefaultConfig())
 	scheduler := New(&queueAdapter{queue: manager})
 	defer scheduler.Stop()
 
@@ -124,7 +125,7 @@ func TestScheduler_RemoveNonExistent(t *testing.T) {
 }
 
 func TestScheduler_Count(t *testing.T) {
-	manager := queue.New(queue.DefaultConfig())
+	manager := dgqueue.New(dgqueue.DefaultConfig())
 	scheduler := New(&queueAdapter{queue: manager})
 	defer scheduler.Stop()
 
@@ -141,7 +142,7 @@ func TestScheduler_Count(t *testing.T) {
 }
 
 func TestScheduler_ScheduleJob(t *testing.T) {
-	manager := queue.New(queue.DefaultConfig())
+	manager := dgqueue.New(dgqueue.DefaultConfig())
 	scheduler := New(&queueAdapter{queue: manager})
 	defer scheduler.Stop()
 

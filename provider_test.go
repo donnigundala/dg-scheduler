@@ -1,4 +1,4 @@
-package scheduler
+package dgscheduler
 
 import (
 	"testing"
