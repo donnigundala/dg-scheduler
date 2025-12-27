@@ -53,35 +53,40 @@ func main() {
 }
 ```
 
-### With Queue Integration
-
 ```go
 package main
 
 import (
-    "context"
-    
-    "github.com/donnigundala/dg-queue"
+    "github.com/donnigundala/dg-core/foundation"
     "github.com/donnigundala/dg-scheduler"
+    "github.com/donnigundala/dg-queue"
 )
 
 func main() {
-    // Create queue
-    q := queue.New(queue.DefaultConfig())
-    q.Start(context.Background())
-    defer q.Stop(context.Background())
+    app := foundation.New(".")
     
-    // Create scheduler with queue
-    s := scheduler.New(q)
-    s.Start()
-    defer s.Stop()
+    // 1. Register Queue (Optional, required for ScheduleJob)
+    app.Register(dgqueue.NewQueueServiceProvider(nil))
     
-    // Schedule job to be dispatched to queue
-    s.ScheduleJob("*/5 * * * *", "cleanup", map[string]string{
-        "action": "clean_temp_files",
-    })
+    // 2. Register Scheduler
+    app.Register(dgscheduler.NewSchedulerServiceProvider(nil))
+    
+    app.Start()
 }
+```
 
+### Integration via InfrastructureSuite
+In your `bootstrap/app.go`, the scheduler is typically registered directly:
+
+```go
+func InfrastructureSuite(workerMode bool) []foundation.ServiceProvider {
+	return []foundation.ServiceProvider{
+		dgqueue.NewQueueServiceProvider(nil),
+		dgscheduler.NewSchedulerServiceProvider(nil),
+		// ...
+	}
+}
+```
 ## Cron Expression Format
 
 ```

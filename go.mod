@@ -3,8 +3,8 @@ module github.com/donnigundala/dg-scheduler
 go 1.25.0
 
 require (
-	github.com/donnigundala/dg-core v1.9.0
-	github.com/donnigundala/dg-queue v1.3.0
+	github.com/donnigundala/dg-core v1.0.0
+	github.com/donnigundala/dg-queue v1.0.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/otel v1.39.0
@@ -19,6 +19,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect

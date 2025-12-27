@@ -1,0 +1,38 @@
+# Binaries
+bin/
+main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+build/
+dist/
+
+# Test/Coverage
+*.test
+*.out
+coverage.txt
+
+# Local development
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Example databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
